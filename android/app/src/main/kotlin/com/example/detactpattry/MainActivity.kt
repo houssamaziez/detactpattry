@@ -5,37 +5,38 @@ import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.example.detactpattry.WebSocketService
 
-class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.example.detactpattry/service"
+// تأكد من إضافة جميع الاستيرادات اللازمة
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.os.Build
+import androidx.core.app.NotificationCompat
+
+class MainActivity : FlutterActivity() {
+    private val CHANNEL = "com.example.websocket_service"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "startService" -> {
-                    startBackgroundService()
-                    result.success("Service started")
-                }
-                "stopService" -> {
-                    stopBackgroundService()
-                    result.success("Service stopped")
-                }
-                else -> {
-                    result.notImplemented()
+        
+        // إعداد قناة MethodChannel للتواصل مع Flutter
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "startWebSocketService" -> {
+                        // بدء خدمة WebSocket في المقدمة
+                        val intent = Intent(this, WebSocketService::class.java)
+                        startForegroundService(intent)
+                        result.success(null)
+                    }
+                    "stopWebSocketService" -> {
+                        // إيقاف خدمة WebSocket
+                        val intent = Intent(this, WebSocketService::class.java)
+                        stopService(intent)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
                 }
             }
-        }
-    }
-
-    private fun startBackgroundService() {
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        startService(serviceIntent)
-    }
-
-    private fun stopBackgroundService() {
-        val serviceIntent = Intent(this, MyBackgroundService::class.java)
-        stopService(serviceIntent)
     }
 }
